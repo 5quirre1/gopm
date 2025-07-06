@@ -35,6 +35,8 @@ gopm is a clone of npm that can make installing packages not take 575848834 year
    ```
 ## on linux
   `go build -o gopm`
+  
+---
 
 > [!IMPORTANT]
 > u will need to install the golang language to build the programs (https://go.dev/dl/)
