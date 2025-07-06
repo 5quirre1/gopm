@@ -207,7 +207,7 @@ func main() {
 	case "list", "ls":
 		listPackages()
 	case "version":
-		ui.Info("gopm version 1.0.0")
+		ui.Info("gopm version 1.1.0")
 	default:
 		printUsage()
 	}
@@ -215,6 +215,7 @@ func main() {
 func printUsage() {
 	ui.Header("usage")
 	fmt.Println("  gopm install [package] [version]   install package(s)")
+	fmt.Println("  gopm uninstall [package] [version]   uninstall package(s)")
 	fmt.Println("  gopm init                          initialize package.json")
 	fmt.Println("  gopm info <package>                show package info")
 	fmt.Println("  gopm search <query>                search packages")
