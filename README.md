@@ -1,3 +1,5 @@
+![hahaha](https://pkg.go.dev/badge/github.com/user/repo.svg)
+
 # gopm
 
 gopm is a clone of npm that can make installing packages not take 575848834 years!!
