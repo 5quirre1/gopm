@@ -215,7 +215,6 @@ func main() {
 func printUsage() {
 	ui.Header("usage")
 	fmt.Println("  gopm install [package] [version]   install package(s)")
-	fmt.Println("  gopm uninstall [package] [version]   uninstall package(s)")
 	fmt.Println("  gopm init                          initialize package.json")
 	fmt.Println("  gopm info <package>                show package info")
 	fmt.Println("  gopm search <query>                search packages")
@@ -262,42 +261,33 @@ func uninstallPackage(name string) {
 	ui.Header(fmt.Sprintf("uninstalling %s", name))
 	packageDir := filepath.Join(NODE_MODULES_DIR, name)
 	if _, err := os.Stat(packageDir); os.IsNotExist(err) {
-		ui.Warning(fmt.Sprintf("%s is not installed", name))
+		ui.Warning(fmt.Sprintf("package '%s' is not installed", name))
 		return
 	}
-	if err := os.RemoveAll(packageDir); err != nil {
-		ui.Error(fmt.Sprintf("failed to remove %s: %v", name, err))
-		return
-	}
-	packageJSON, err := readPackageJSON()
+	err := os.RemoveAll(packageDir)
 	if err != nil {
-		ui.Error(fmt.Sprintf("error reading package.json: %v", err))
+		ui.Error(fmt.Sprintf("failed to uninstall %s: %v", name, err))
 		return
 	}
-	changed := false
+	ui.Success(fmt.Sprintf("uninstalled %s", name))
+	pkgJsonPath := "package.json"
+	file, err := os.ReadFile(pkgJsonPath)
+	if err != nil {
+		return
+	}
+	var packageJSON PackageJSON
+	err = json.Unmarshal(file, &packageJSON)
+	if err != nil {
+		return
+	}
 	if _, ok := packageJSON.Dependencies[name]; ok {
 		delete(packageJSON.Dependencies, name)
-		changed = true
-	}
-	if _, ok := packageJSON.DevDependencies[name]; ok {
-		delete(packageJSON.DevDependencies, name)
-		changed = true
-	}
-	if changed {
-		file, err := os.Create("package.json")
-		if err != nil {
-			ui.Error(fmt.Sprintf("error updating package.json: %v", err))
-			return
-		}
-		defer file.Close()
-		encoder := json.NewEncoder(file)
-		encoder.SetIndent("", "  ")
-		if err := encoder.Encode(packageJSON); err != nil {
-			ui.Error(fmt.Sprintf("error writing package.json: %v", err))
-			return
+		updated, err := json.MarshalIndent(packageJSON, "", "  ")
+		if err == nil {
+			_ = os.WriteFile(pkgJsonPath, updated, 0644)
+			ui.Info("updated package.json")
 		}
 	}
-	ui.Success(fmt.Sprintf("%s uninstalled", name))
 }
 func installPackagesConcurrently(tasks []InstallTask) []InstallResult {
 	taskChan := make(chan InstallTask, len(tasks))
