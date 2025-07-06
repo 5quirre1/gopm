@@ -184,6 +184,12 @@ func main() {
 			}
 			installPackage(packageName, version)
 		}
+	case "uninstall", "rm":
+		if len(os.Args) < 3 {
+			ui.Error("usage: gopm uninstall <package>")
+			return
+		}
+		uninstallPackage(os.Args[2])
 	case "init":
 		initPackage()
 	case "info":
@@ -207,8 +213,9 @@ func main() {
 	}
 }
 func printUsage() {
-	ui.Header("Usage")
+	ui.Header("usage")
 	fmt.Println("  gopm install [package] [version]   install package(s)")
+	fmt.Println("  gopm uninstall [package] [version]   uninstall package(s)")
 	fmt.Println("  gopm init                          initialize package.json")
 	fmt.Println("  gopm info <package>                show package info")
 	fmt.Println("  gopm search <query>                search packages")
@@ -250,6 +257,47 @@ func installPackage(name, version string) {
 	}}
 	results := installPackagesConcurrently(tasks)
 	displayInstallResults(results, startTime)
+}
+func uninstallPackage(name string) {
+	ui.Header(fmt.Sprintf("uninstalling %s", name))
+	packageDir := filepath.Join(NODE_MODULES_DIR, name)
+	if _, err := os.Stat(packageDir); os.IsNotExist(err) {
+		ui.Warning(fmt.Sprintf("%s is not installed", name))
+		return
+	}
+	if err := os.RemoveAll(packageDir); err != nil {
+		ui.Error(fmt.Sprintf("failed to remove %s: %v", name, err))
+		return
+	}
+	packageJSON, err := readPackageJSON()
+	if err != nil {
+		ui.Error(fmt.Sprintf("error reading package.json: %v", err))
+		return
+	}
+	changed := false
+	if _, ok := packageJSON.Dependencies[name]; ok {
+		delete(packageJSON.Dependencies, name)
+		changed = true
+	}
+	if _, ok := packageJSON.DevDependencies[name]; ok {
+		delete(packageJSON.DevDependencies, name)
+		changed = true
+	}
+	if changed {
+		file, err := os.Create("package.json")
+		if err != nil {
+			ui.Error(fmt.Sprintf("error updating package.json: %v", err))
+			return
+		}
+		defer file.Close()
+		encoder := json.NewEncoder(file)
+		encoder.SetIndent("", "  ")
+		if err := encoder.Encode(packageJSON); err != nil {
+			ui.Error(fmt.Sprintf("error writing package.json: %v", err))
+			return
+		}
+	}
+	ui.Success(fmt.Sprintf("%s uninstalled", name))
 }
 func installPackagesConcurrently(tasks []InstallTask) []InstallResult {
 	taskChan := make(chan InstallTask, len(tasks))
