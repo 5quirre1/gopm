@@ -207,7 +207,7 @@ func main() {
 	case "list", "ls":
 		listPackages()
 	case "version":
-		ui.Info("gopm version 1.0.0")
+		ui.Info("gopm version 1.0.0 haha 69")
 	default:
 		printUsage()
 	}
