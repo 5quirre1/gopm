@@ -33,6 +33,11 @@ gopm is a clone of npm that can make installing packages not take 575848834 year
     $env:GOARCH = "amd64"
     go build -o gopm
    ```
+  when u want to go back to windows stuff build, do:
+  ```
+  Remove-Item Env:GOOS
+  Remove-Item Env:GOARCH
+  ```
 ## on linux
   `go build -o gopm`
   
