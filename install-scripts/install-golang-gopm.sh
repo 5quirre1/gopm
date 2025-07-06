@@ -1,4 +1,5 @@
 #!/bin/bash
+# made by nameswastaken!1!
 sudo apt update
 sudo apt install -y git curl build-essential
 if ! command -v go >/dev/null 2>&1; then
