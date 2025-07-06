@@ -166,7 +166,7 @@ var (
 	}
 )
 func main() {
-	ui.Header("GoPm - faster npm")
+	ui.Header("gopm - faster npm")
 	if len(os.Args) < 2 {
 		printUsage()
 		return
@@ -201,13 +201,13 @@ func main() {
 	case "list", "ls":
 		listPackages()
 	case "version":
-		ui.Info("GoPm version 1.0.0")
+		ui.Info("gopm version 1.0.0")
 	default:
 		printUsage()
 	}
 }
 func printUsage() {
-	ui.Header("usage")
+	ui.Header("Usage")
 	fmt.Println("  gopm install [package] [version]   install package(s)")
 	fmt.Println("  gopm init                          initialize package.json")
 	fmt.Println("  gopm info <package>                show package info")
