@@ -190,6 +190,12 @@ func main() {
 			return
 		}
 		uninstallPackage(os.Args[2])
+		case "update":
+		if len(os.Args) == 2 {
+			updateAllPackages()
+		} else {
+			updatePackage(os.Args[2])
+		}
 	case "init":
 		initPackage()
 	case "info":
@@ -216,6 +222,7 @@ func printUsage() {
 	ui.Header("usage")
 	fmt.Println("  gopm install [package] [version]   install package(s)")
 	fmt.Println("  gopm uninstall [package] [version]   uninstall package(s)")
+	fmt.Println("  gopm update [package]              update one or all packages to latest version")
 	fmt.Println("  gopm init                          initialize package.json")
 	fmt.Println("  gopm info <package>                show package info")
 	fmt.Println("  gopm search <query>                search packages")
@@ -289,6 +296,70 @@ func uninstallPackage(name string) {
 			ui.Info("updated package.json")
 		}
 	}
+}
+func updatePackage(name string) {
+	ui.Header(fmt.Sprintf("updating package: %s", name))
+	packageJSON, err := readPackageJSON()
+	if err != nil {
+		ui.Error(fmt.Sprintf("error reading package.json: %v", err))
+		return
+	}
+	if _, ok := packageJSON.Dependencies[name]; !ok {
+		ui.Warning(fmt.Sprintf("package '%s' is not in dependencies", name))
+		return
+	}
+	tasks := []InstallTask{{
+		Name:    name,
+		Version: "latest",
+		Dir:     NODE_MODULES_DIR,
+		IsRoot:  true,
+	}}
+	results := installPackagesConcurrently(tasks)
+	for _, result := range results {
+		if result.Error == nil {
+			packageJSON.Dependencies[name] = result.Task.Version
+		}
+	}
+	data, err := json.MarshalIndent(packageJSON, "", "  ")
+	if err == nil {
+		_ = os.WriteFile("package.json", data, 0644)
+		ui.Info("updated package.json")
+	}
+	displayInstallResults(results, time.Now())
+}
+func updateAllPackages() {
+	startTime := time.Now()
+	packageJSON, err := readPackageJSON()
+	if err != nil {
+		ui.Error(fmt.Sprintf("error reading package.json: %v", err))
+		return
+	}
+	if len(packageJSON.Dependencies) == 0 {
+		ui.Warning("no dependencies found in package.json")
+		return
+	}
+	ui.Header("updating all dependencies to latest versions")
+	tasks := make([]InstallTask, 0, len(packageJSON.Dependencies))
+	for name := range packageJSON.Dependencies {
+		tasks = append(tasks, InstallTask{
+			Name:    name,
+			Version: "latest",
+			Dir:     NODE_MODULES_DIR,
+			IsRoot:  true,
+		})
+	}
+	results := installPackagesConcurrently(tasks)
+	for _, result := range results {
+		if result.Error == nil {
+			packageJSON.Dependencies[result.Task.Name] = result.Task.Version
+		}
+	}
+	data, err := json.MarshalIndent(packageJSON, "", "  ")
+	if err == nil {
+		_ = os.WriteFile("package.json", data, 0644)
+		ui.Info("updated package.json with latest versions")
+	}
+	displayInstallResults(results, startTime)
 }
 func installPackagesConcurrently(tasks []InstallTask) []InstallResult {
 	taskChan := make(chan InstallTask, len(tasks))
