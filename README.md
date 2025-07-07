@@ -40,6 +40,10 @@ gopm is a clone of npm that can make installing packages not take 575848834 year
   ```
 ## on linux
   `go build -o gopm`
+
+## want a icon?
+
+  just put the .syso in the assets folder into the same dictionary as `main.go`!! after that, just build normally
   
 ---
 
