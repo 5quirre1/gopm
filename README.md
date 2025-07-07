@@ -17,10 +17,11 @@ gopm is a clone of npm that can make installing packages not take 575848834 year
 
 
 # how to build
-
+  (***install the github repo so u have all the files***)
+  
 ## on windows
 
-  ***install the github repo so u have all the files***
+
   
   ### building for windows
   ```
