@@ -1,3 +1,4 @@
+
 package main
 import (
 	"archive/tar"
@@ -272,6 +273,12 @@ func main() {
 			uninstallPackageGlobal(os.Args[2])
 		} else {
 			uninstallPackage(os.Args[2])
+		}
+	case "update":
+		if len(os.Args) == 2 {
+			updateAllPackages()
+		} else {
+			updatePackage(os.Args[2])
 		}
 	case "init":
 		initPackage()
@@ -632,9 +639,8 @@ func createSymlink(src, dest string) error {
         os.Remove(dest)
     }
     if runtime.GOOS == "windows" {
-        cmdContent := fmt.Sprintf(`@ECHO OFF
-"%~dp0\%s" %*`, filepath.Base(src))
-        return os.WriteFile(dest+".cmd", []byte(cmdContent), 0644)
+cmdContent := fmt.Sprintf("@ECHO OFF\r\n\"%%~dp0\\%s\" %%*\r\n", filepath.Base(src))
+return os.WriteFile(dest+".cmd", []byte(cmdContent), 0644)
     } else {
         relPath, err := filepath.Rel(filepath.Dir(dest), src)
         if err != nil {
