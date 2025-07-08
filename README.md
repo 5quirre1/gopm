@@ -30,7 +30,7 @@ gopm is a clone of npm that can make installing packages not take 575848834 year
   ### trying to build for linux on windows
   
   ```
-    v:GOOS = "linux"
+    $env:GOOS = "linux" 
     $env:GOARCH = "amd64"
     go build -o gopm
    ```
